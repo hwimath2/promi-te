@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids Tetris - Animal Friends</title>
+    <style>
+        /* 메인 스타일링 - 전체 게임의 모양을 정의합니다 */
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #f0f9ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background-color: #fff5f5;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        /* 게임 보드 스타일링 - 블록이 떨어지는 주요 영역입니다 */
+        .game-board {
+            width: 300px;
+            height: 600px;
+            border: 5px solid #ffcad4;
+            border-radius: 10px;
+            display: grid;
+            grid-template-rows: repeat(20, 30px);
+            grid-template-columns: repeat(10, 30px);
+            background-color: #ffeef2;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 게임 정보 패널 스타일링 - 다음 블록 미리보기와 점수 등을 표시하는 영역입니다 */
+        .game-info {
+            width: 150px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .preview-container {
+            background-color: #e0f7fa;
+            border: 3px solid #98d7e1;
+            border-radius: 10px;
+            width: 120px;
+            height: 120px;
+            display: grid;
+            grid-template-rows: repeat(4, 30px);
+            grid-template-columns: repeat(4, 30px);
+            position: relative;
+        }
+        
+        .stats {
+            background-color: #fff8e1;
+            border: 3px solid #ffe082;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .stats h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #ff9800;
+            text-align: center;
+        }
+        
+        .stats p {
+            margin: 5px 0;
+            font-size: 16px;
+            color: #795548;
+        }
+        
+        /* 셀 스타일링 - 게임 보드의 각 칸입니다 */
+        .cell {
+            width: 30px;
+            height: 30px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+        }
+        
+        /* 동물 얼굴 블록 스타일링 */
+        .block {
+            width: 28px;
+            height: 28px;
+            border-radius: 5px;
+            position: relative;
+            transition: all 0.1s;
+        }
+        
+        /* 동물 얼굴의 눈 부분 (모든 블록에 공통적으로 적용) */
+        .block::before,
+        .block::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            background-color: #333;
+            width: 6px;
+            height: 6px;
+            top: 8px;
+        }
+        
+        .block::before {
+            left: 6px;
+        }
+        
+        .block::after {
+            right: 6px;
+        }
+        
+        /* 동물 얼굴의 미소 부분 */
+        .block.smile::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 6px;
+            border-radius: 0 0 10px 10px;
+            background: none;
+            border-bottom: 2px solid #333;
+            bottom: 7px;
+            left: 9px;
+            top: auto;
+            right: auto;
+        }
+        
+        /* 다양한 블록 색상과 동물 변형 */
+        .I-block {
+            background-color: #a5d6a7; /* 연한 녹색 - 개구리 */
+        }
+        
+        .I-block::before,
+        .I-block::after {
+            top: 6px;
+        }
+        
+        .I-block.smile::after {
+            width: 12px;
+            height: 8px;
+            left: 8px;
+            bottom: 6px;
+        }
+        
+        .O-block {
+            background-color: #ffcc80; /* 연한 주황색 - 사자 */
+        }
+        
+        .O-block::before,
+        .O-block::after {
+            width: 5px;
+            height: 5px;
+        }
+        
+        .O-block.smile::after {
+            bottom: 8px;
+        }
+        
+        .T-block {
+            background-color: #ce93d8; /* 연한 보라색 - 고양이 */
+        }
+        
+        .T-block::before,
+        .T-block::after {
+            top: 7px;
+            width: 5px;
+            height: 7px;
+        }
+        
+        .L-block {
+            background-color: #90caf9; /* 연한 파란색 - 강아지 */
+        }
+        
+        .L-block::before,
+        .L-block::after {
+            top: 7px;
+        }
+        
+        .J-block {
+            background-color: #f48fb1; /* 연한 분홍색 - 토끼 */
+        }
+        
+        .J-block::before,
+        .J-block::after {
+            top: 6px;
+            width: 5px;
+            height: 8px;
+        }
+        
+        .S-block {
+            background-color: #ffe082; /* 연한 노란색 - 새 */
+        }
+        
+        .S-block::before,
+        .S-block::after {
+            top: 7px;
+            width: 4px;
+            height: 4px;
+        }
+        
+        .Z-block {
+            background-color: #ef9a9a; /* 연한 빨간색 - 여우 */
+        }
+        
+        .Z-block::before,
+        .Z-block::after {
+            top: 8px;
+            width: 5px;
+            height: 5px;
+        }
+        
+        /* 입자 효과 스타일링 - 라인이 지워질 때 나타나는 거품 효과 */
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: pop 0.8s ease-out forwards;
+        }
+        
+        @keyframes pop {
+            0% {
+                transform: scale(0);
+                opacity: 0.7;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.9;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        /* 게임 오버 오버레이 스타일링 */
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            display: none;
+        }
+        
+        .game-over h2 {
+            color: #ff6b6b;
+            font-size: 36px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .game-over button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            transition: transform 0.2s;
+        }
+        
+        .game-over button:hover {
+            transform: scale(1.1);
+        }
+        
+        /* 컨트롤 패널 스타일링 */
+        .controls {
+            background-color: #e1f5fe;
+            border: 3px solid #81d4fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .controls h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #039be5;
+            text-align: center;
+        }
+        
+        .controls p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #455a64;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 메인 게임 보드 - 모든 테트리스 조각들이 떨어지는 곳 -->
+        <div class="game-board" id="board">
+            <!-- 게임 오버시 보여질 오버레이 -->
+            <div class="game-over" id="gameOver">
+                <h2>Game Over!</h2>
+                <button id="restartButton">Play Again</button>
+            </div>
+        </div>
+        
+        <!-- 오른쪽 게임 정보 패널 -->
+        <div class="game-info">
+            <!-- 다음 테트리스 조각 미리보기 -->
+            <div class="preview-container" id="preview"></div>
+            
+            <!-- 게임 통계 표시 -->
+            <div class="stats">
+                <h3>Game Stats</h3>
+                <p>Score: <span id="score">0</span></p>
+                <p>Level: <span id="level">1</span></p>
+                <p>Time: <span id="time">00:00</span></p>
+            </div>
+            
+            <!-- 게임 조작법 안내 -->
+            <div class="controls">
+                <h3>Controls</h3>
+                <p>↑: Rotate</p>
+                <p>←/→: Move left/right</p>
+                <p>↓: Speed up</p>
+                <p>Space: Drop instantly</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== 게임 설정 =====
+        // 이 부분은 게임의 모든 초기 변수와 설정을 설정합니다
+        
+        // DOM 요소를 쉽게 접근하기 위해 저장
+        const board = document.getElementById('board');        // 메인 게임 보드
+        const preview = document.getElementById('preview');    // 다음 블록 미리보기 표시
+        const scoreElement = document.getElementById('score'); // 점수 표시
+        const levelElement = document.getElementById('level'); // 레벨 표시
+        const timeElement = document.getElementById('time');   // 시간 표시
+        const gameOverElement = document.getElementById('gameOver'); // 게임 오버 오버레이
+        const restartButton = document.getElementById('restartButton'); // 재시작 버튼
+        
+        // 게임 설정과 상태
+        const rows = 20;                // 게임 보드의 행 수
+        const cols = 10;                // 게임 보드의 열 수
+        let score = 0;                  // 플레이어의 점수
+        let level = 1;                  // 현재 게임 레벨
+        let gameTime = 0;               // 경과된 게임 시간(초)
+        let gameInterval;               // 메인 게임 루프 간격
+        let timeInterval;               // 시간 추적 간격
+        let speed = 1000;               // 초기 조각 떨어지는 속도(밀리초)
+        let isGameOver = false;         // 게임이 끝났는지 추적하는 플래그
+        
+        // 게임 보드 그리드 생성
+        let grid = Array.from({ length: rows }, () => Array(cols).fill(null));
+        
+        // 빈 셀로 게임 보드 초기화
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.row = row;
+                cell.dataset.col = col;
+                board.appendChild(cell);
+            }
+        }
+        
+        // 빈 셀로 미리보기 보드 초기화
+        for (let row = 0; row < 4; row++) {
+            for (let col = 0; col < 4; col++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                preview.appendChild(cell);
+            }
+        }
+        
+        // ===== 테트리스 조각 =====
+        // 모든 다양한 테트리스 조각 모양의 정의
+        
+        // 각 조각은 모양(블록이 있는 위치)과 유형(외관을 결정)으로 정의됩니다
+        const PIECES = [
+            {
+                // I 조각(긴 직선 조각) - 개구리
+                shape: [
+                    [0, 0, 0, 0],
+                    [1, 1, 1, 1],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                type: 'I-block'
+            },
+            {
+                // O 조각(사각형) - 사자
+                shape: [
+                    [1, 1],
+                    [1, 1]
+                ],
+                type: 'O-block'
+            },
+            {
+                // T 조각 - 고양이
+                shape: [
+                    [0, 1, 0],
+                    [1, 1, 1],
+                    [0, 0, 0]
+                ],
+                type: 'T-block'
+            },
+            {
+                // L 조각 - 강아지
+                shape: [
+                    [0, 0, 1],
+                    [1, 1, 1],
+                    [0, 0, 0]
+                ],
+                type: 'L-block'
+            },
+            {
+                // J 조각 - 토끼
+                shape: [
+                    [1, 0, 0],
+                    [1, 1, 1],
+                    [0, 0, 0]
+                ],
+                type: 'J-block'
+            },
+            {
+                // S 조각 - 새
+                shape: [
+                    [0, 1, 1],
+                    [1, 1, 0],
+                    [0, 0, 0]
+                ],
+                type: 'S-block'
+            },
+            {
+                // Z 조각 - 여우
+                shape: [
+                    [1, 1, 0],
+                    [0, 1, 1],
+                    [0, 0, 0]
+                ],
+                type: 'Z-block'
+            }
+        ];
+        
+        // ===== 게임 상태 =====
+        // 게임의 현재 상태를 추적하는 변수
+        
+        let currentPiece;   // 현재 떨어지고 있는 조각
+        let nextPiece;      // 다음에 떨어질 조각
+        
+        // ===== 게임 함수 =====
+        // 게임플레이를 제어하는 주요 게임 함수
+        
+        // 무작위 테트리스 조각 생성
+        function getRandomPiece() {
+            // PIECES 배열에서 무작위 조각 선택
+            const piece = PIECES[Math.floor(Math.random() * PIECES.length)];
+            
+            // 원본을 수정하지 않도록 조각 복제
+            return {
+                shape: JSON.parse(JSON.stringify(piece.shape)),
+                type: piece.type,
+                row: 0,  // 보드 상단에서 시작
+                col: Math.floor((cols - piece.shape[0].length) / 2) // 수평으로 중앙에 배치
+            };
+        }
+        
+        // 게임 보드에 조각 그리기
+        function drawPiece(piece) {
+            // 게임 보드의 모든 셀 가져오기
+            const cells = document.querySelectorAll('#board .cell');
+            
+            // 조각 모양의 각 행과 열을 반복
+            for (let row = 0; row < piece.shape.length; row++) {
+                for (let col = 0; col < piece.shape[row].length; col++) {
+                    // 조각 모양에서 이 위치에 블록이 있으면
+                    if (piece.shape[row][col]) {
+                        // 게임 보드에서의 위치 계산
+                        const boardRow = piece.row + row;
+                        const boardCol = piece.col + col;
+                        
+                        // 블록이 보이는 보드 바깥에 있으면 건너뛰기(상단 위)
+                        if (boardRow < 0) continue;
+                        
+                        // 보드에서 해당하는 셀 찾기
+                        const cellIndex = boardRow * cols + boardCol;
+                        const cell = cells[cellIndex];
+                        
+                        // 조각의 동물 유형으로 블록 생성
+                        if (cell) {
+                            const block = document.createElement('div');
+                            block.className = `block ${piece.type} smile`;
+                            cell.appendChild(block);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 게임 보드에서 조각 지우기
+        function clearPiece(piece) {
+            // 게임 보드의 모든 셀 가져오기
+            const cells = document.querySelectorAll('#board .cell');
+            
+            // 조각 모양의 각 행과 열을 반복
+            for (let row = 0; row < piece.shape.length; row++) {
+                for (let col = 0; col < piece.shape[row].length; col++) {
+                    // 조각 모양에서 이 위치에 블록이 있으면
+                    if (piece.shape[row][col]) {
+                        // 게임 보드에서의 위치 계산
+                        const boardRow = piece.row + row;
+                        const boardCol = piece.col + col;
+                        
+                        // 블록이 보이는 보드 바깥에 있으면 건너뛰기(상단 위)
+                        if (boardRow < 0) continue;
+                        
+                        // 보드에서 해당하는 셀 찾기
+                        const cellIndex = boardRow * cols + boardCol;
+                        const cell = cells[cellIndex];
+                        
+                        // 이 셀에서 모든 블록 제거
+                        if (cell) {
+                            while (cell.firstChild) {
+                                cell.removeChild(cell.firstChild);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 조각이 새 위치로 이동할 수 있는지 확인
+        function canMoveTo(piece, newRow, newCol) {
+            // 조각 모양의 각 행과 열을 반복
+            for (let row = 0; row < piece.shape.length; row++) {
+                for (let col = 0; col < piece.shape[row].length; col++) {
+                    // 조각 모양에서 이 위치에 블록이 있으면
+                    if (piece.shape[row][col]) {
+                        // 게임 보드에서의 새 위치 계산
+                        const boardRow = newRow + row;
+                        const boardCol = newCol + col;
+                        
+                        // 새 위치가 보드 경계 밖인지 확인
+                        if (
+                            boardCol < 0 ||                // 왼쪽 가장자리
+                            boardCol >= cols ||            // 오른쪽 가장자리
+                            boardRow >= rows ||            // 아래쪽 가장자리
+                            // 이 위치에 그리드에 이미 블록이 있는지 확인
+                            (boardRow >= 0 && grid[boardRow][boardCol])
+                        ) {
+                            return false; // 이 위치로 이동할 수 없음
+                        }
+                    }
+                }
+            }
+            return true; // 이 위치로 이동할 수 있음
+        }
+        
+        // 현재 조각을 한 행 아래로 이동
+        function moveDown() {
+            // 게임이 끝났으면 아무것도 하지 않음
+            if (isGameOver) return;
+            
+            // 새 행 위치 계산
+            const newRow = currentPiece.row + 1;
+            
+            // 조각이 아래로 이동할 수 있는지 확인
+            if (canMoveTo(currentPiece, newRow, currentPiece.col)) {
+                // 현재 위치에서 조각 지우기
+                clearPiece(currentPiece);
+                
+                // 조각 위치 업데이트
+                currentPiece.row = newRow;
+                
+                // 새 위치에 조각 다시 그리기
+                drawPiece(currentPiece);
+            } else {
+                // 조각이 아래로 이동할 수 없으면 바닥이나 다른 조각에 도달한 것
+                lockPiece();
+            }
+        }
+        
+        // 현재 조각을 좌우로 이동
+        function moveHorizontal(direction) {
+            // 게임이 끝났으면 아무것도 하지 않음
+            if (isGameOver) return;
+            
+            // 새 열 위치 계산
+            const newCol = currentPiece.col + direction;
+            
+            // 조각이 새 위치로 이동할 수 있는지 확인
+            if (canMoveTo(currentPiece, currentPiece.row, newCol)) {
+                // 현재 위치에서 조각 지우기
+                clearPiece(currentPiece);
+                
+                // 조각 위치 업데이트
+                currentPiece.col = newCol;
+                
+                // 새 위치에 조각 다시 그리기
+                drawPiece(currentPiece);
+            }
+        }
+        
+        // 현재 조각 회전
+        function rotatePiece() {
+            // 게임이 끝났으면 아무것도 하지 않음
+            if (isGameOver) return;
+            
+            // O 조각(사각형)에 대한 특별한 경우 - 회전할 필요 없음
+            if (currentPiece.type === 'O-block') return;
+            
+            // 현재 위치에서 조각 지우기
+            clearPiece(currentPiece);
+            
+            // 작업할 조각의 복사본 생성
+            const originalShape = JSON.parse(JSON.stringify(currentPiece.shape));
+            const size = originalShape.length;
+            
+            // 새 회전된 모양 생성
+            const rotatedShape = Array.from({ length: size }, () => Array(size).fill(0));
+            
+            // 회전 수행(시계 방향 90도)
+            for (let row = 0; row < size; row++) {
+                for (let col = 0; col < size; col++) {
+                    rotatedShape[col][size - 1 - row] = originalShape[row][col];
+                }
+            }
+            
+            // 회전이 작동하지 않을 경우 복원할 수 있도록 원래 모양 저장
+            const originalPieceShape = currentPiece.shape;
+            
+            // 회전된 모양 적용
+            currentPiece.shape = rotatedShape;
+            
+            // 회전된 조각이 현재 위치에 맞는지 확인
+            if (!canMoveTo(currentPiece, currentPiece.row, currentPiece.col)) {
+                // 그렇지 않은 경우 원래 모양 복원
+                currentPiece.shape = originalPieceShape;
+            }
+            
+            // 조각 다시 그리기
+            drawPiece(currentPiece);
+        }
+        
+        // 현재 조각을 제자리에 고정하고 완성된 라인 확인
+        function lockPiece() {
+            // 현재 조각을 그리드에 추가
+            for (let row = 0; row < currentPiece.shape.length; row++) {
+                for (let col = 0; col < currentPiece.shape[row].length; col++) {
+                    if (currentPiece.shape[row][col]) {
+                        const boardRow = currentPiece.row + row;
+                        const boardCol = currentPiece.col + col;
+                        
+                        // 조각이 보드 위에 고정되면 게임 오버
+                        if (boardRow < 0) {
+                            gameOver();
+                            return;
+                        }
+                        
+                        // 그리드에 조각 유형 추가
+                        grid[boardRow][boardCol] = currentPiece.type;
+                    }
+                }
+            }
+            
+            // 완성된 라인 확인
+            checkLines();
+            
+            // 다음 조각 가져오기
+            currentPiece = nextPiece;
+            nextPiece = getRandomPiece();
+            
+            // 다음 조각 미리보기 업데이트
+            updatePreview();
+            
+            // 새 현재 조각 그리기
+            drawPiece(currentPiece);
+        }
+        
+        // 완성된 라인을 확인하고 제거
+        function checkLines() {
+            let linesCleared = 0;
+            
+            // 아래에서 위로 각 행 확인
+            for (let row = rows - 1; row >= 0; row--) {
+                // 이 행이 완전히 채워졌는지 확인
+                if (grid[row].every(cell => cell !== null)) {
+                    linesCleared++;
+                    
+                    // 라인을 지우기 전에 입자 효과 생성
+                    createLineParticles(row);
+                    
+                    // 라인을 지우고 모든 것을 아래로 이동
+                    clearLine(row);
+                    
+                    // 같은 행을 다시 확인(모든 것을 아래로 이동했으므로)
+                    row++;
+                }
+            }
+            
+            // 지워진 라인을 기준으로 점수 업데이트
+            if (linesCleared > 0) {
+                updateScore(linesCleared);
+            }
+        }
+        
+        // 라인이 지워질 때 입자 효과 생성
+        function createLineParticles(rowIndex) {
+            // 지정된 행의 모든 셀 가져오기
+            const cells = document.querySelectorAll(`#board .cell[data-row="${rowIndex}"]`);
+            
+            // 행의 각 셀에 대한 입자 생성
+            cells.forEach(cell => {
+                // 각 셀에 대한 여러 입자 생성
+                for (let i = 0; i < 3; i++) {
+                    // 입자 요소 생성
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    
+                    // 셀 위치를 기준으로 입자 위치 지정
+                    const rect = cell.getBoundingClientRect();
+                    const boardRect = board.getBoundingClientRect();
+                    
+                    // 보드에 상대적인 위치 계산
+                    const left = rect.left - boardRect.left + Math.random() * 10;
+                    const top = rect.top - boardRect.top + Math.random() * 10;
+                    
+                    // 입자 위치 및 색상 설정
+                    particle.style.left = `${left}px`;
+                    particle.style.top = `${top}px`;
+                    
+                    // 블록 색상을 기반으로 입자의 무작위 색상 가져오기
+                    const block = cell.querySelector('.block');
+                    if (block) {
+                        // 블록의 배경색 또는 기본값 사용
+                        const computedStyle = window.getComputedStyle(block);
+                        particle.style.backgroundColor = computedStyle.backgroundColor;
+                    } else {
+                        // 블록이 없는 경우 대체 색상
+                        const colors = ['#a5d6a7', '#ffcc80', '#ce93d8', '#90caf9', '#f48fb1', '#ffe082', '#ef9a9a'];
+                        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    }
+                    
+                    // 보드에 입자 추가
+                    board.appendChild(particle);
+                    
+                    // 애니메이션이 끝난 후 입자 제거
+                    setTimeout(() => {
+                        if (particle.parentNode === board) {
+                            board.removeChild(particle);
+                        }
+                    }, 800);
+                }
+            });
+        }
+        
+        // 완성된 라인을 지우고 그 위의 모든 것을 아래로 이동
+        function clearLine(rowIndex) {
+            // 그리드에서 완성된 행 지우기
+            grid.splice(rowIndex, 1);
+            
+            // 상단에 새로운 빈 행 추가
+            grid.unshift(Array(cols).fill(null));
+            
+            // 전체 보드 다시 그리기
+            redrawBoard();
+        }
+        
+        // 그리드를 기반으로 전체 게임 보드 다시 그리기
+        function redrawBoard() {
+            // 게임 보드의 모든 셀 가져오기
+            const cells = document.querySelectorAll('#board .cell');
+            
+            // 모든 셀 지우기
+            cells.forEach(cell => {
+                while (cell.firstChild) {
+                    cell.removeChild(cell.firstChild);
+                }
+            });
+            
+            // 그리드를 기반으로 다시 그리기
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const cellType = grid[row][col];
+                    
+                    // 이 셀에 블록이 있으면
+                    if (cellType) {
+                        // 해당 셀 요소 찾기
+                        const cellIndex = row * cols + col;
+                        const cell = cells[cellIndex];
+                        
+                        // 올바른 유형으로 블록 생성
+                        if (cell) {
+                            const block = document.createElement('div');
+                            block.className = `block ${cellType} smile`;
+                            cell.appendChild(block);
+                        }
+                    }
+                }
+            }
+            
+            // 현재 조각을 상단에 그리기
+            if (currentPiece && !isGameOver) {
+                drawPiece(currentPiece);
+            }
+        }
+        
+        // 다음 조각 미리보기 업데이트
+        function updatePreview() {
+            // 미리보기 영역의 모든 셀 가져오기
+            const cells = document.querySelectorAll('#preview .cell');
+            
+            // 모든 미리보기 셀 지우기
+            cells.forEach(cell => {
+                while (cell.firstChild) {
+                    cell.removeChild(cell.firstChild);
+                }
+            });
+            
+            // 미리보기에서 조각을 중앙에 배치하기 위한 오프셋 계산
+            const offsetRow = Math.floor((4 - nextPiece.shape.length) / 2);
+            const offsetCol = Math.floor((4 - nextPiece.shape[0].length) / 2);
+            
+            // 미리보기 영역에 다음 조각 그리기
+            for (let row = 0; row < nextPiece.shape.length; row++) {
+                for (let col = 0; col < nextPiece.shape[row].length; col++) {
+                    if (nextPiece.shape[row][col]) {
+                        // 미리보기 그리드에서 셀 인덱스 계산
+                        const cellIndex = (offsetRow + row) * 4 + (offsetCol + col);
+                        const cell = cells[cellIndex];
+                        
+                        // 조각의 동물 유형으로 블록 생성
+                        if (cell) {
+                            const block = document.createElement('div');
+                            block.className = `block ${nextPiece.type} smile`;
+                            cell.appendChild(block);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 점수 및 레벨 업데이트
+        function updateScore(linesCleared) {
+            // 라인 지우기 포인트(한 번에 여러 라인을 지울 때 더 많은 포인트)
+            const points = [0, 100, 300, 500, 800][linesCleared] * level;
+            
+            // 점수에 포인트 추가
+            score += points;
+            
+            // 점수 표시 업데이트
+            scoreElement.textContent = score;
+        }
+        
+        // 시간을 MM:SS 형식으로 포맷
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 현재 조각 하드 드롭
+        function hardDrop() {
+            // 게임이 끝났으면 아무것도 하지 않음
+            if (isGameOver) return;
+            
+            // 현재 위치에서 조각 지우기
+            clearPiece(currentPiece);
+            
+            // 더 이상 이동할 수 없을 때까지 조각을 아래로 이동
+            let newRow = currentPiece.row;
+            while (canMoveTo(currentPiece, newRow + 1, currentPiece.col)) {
+                newRow++;
+            }
+            
+            // 조각 위치 업데이트
+            currentPiece.row = newRow;
+            
+            // 새 위치에 조각 다시 그리기
+            drawPiece(currentPiece);
+            
+            // 조각 제자리에 고정
+            lockPiece();
+        }
+        
+        // 게임 오버 함수
+        function gameOver() {
+            // 게임 오버 플래그 설정
+            isGameOver = true;
+            
+            // 게임 간격 중지
+            clearInterval(gameInterval);
+            clearInterval(timeInterval);
+            
+            // 게임 오버 오버레이 표시
+            gameOverElement.style.display = 'flex';
+        }
+        
+        // 게임 재시작
+        function restartGame() {
+            // 게임 오버 오버레이 숨기기
+            gameOverElement.style.display = 'none';
+            
+            // 게임 변수 재설정
+            score = 0;
+            level = 1;
+            gameTime = 0;
+            speed = 1000;
+            isGameOver = false;
+            
+            // 디스플레이 업데이트
+            scoreElement.textContent = '0';
+            levelElement.textContent = '1';
+            timeElement.textContent = '00:00';
+            
+            // 그리드 지우기
+            grid = Array.from({ length: rows }, () => Array(cols).fill(null));
+            
+            // 보드 지우기
+            const cells = document.querySelectorAll('#board .cell');
+            cells.forEach(cell => {
+                while (cell.firstChild) {
+                    cell.removeChild(cell.firstChild);
+                }
+            });
+            
+            // 새 조각 생성
+            currentPiece = getRandomPiece();
+            nextPiece = getRandomPiece();
+            
+            // 다음 조각 미리보기 업데이트
+            updatePreview();
+            
+            // 현재 조각 그리기
+            drawPiece(currentPiece);
+            
+            // 게임 간격 시작
+            startGame();
+        }
+        
+        // ===== 게임 컨트롤 =====
+        // 키보드 입력 처리
+        
+        document.addEventListener('keydown', (event) => {
+            // 게임이 끝나지 않은 경우에만 키 처리
+            if (!isGameOver) {
+                switch (event.key) {
+                    case 'ArrowLeft':  // 왼쪽 화살표 키
+                        moveHorizontal(-1);
+                        break;
+                    case 'ArrowRight': // 오른쪽 화살표 키
+                        moveHorizontal(1);
+                        break;
+                    case 'ArrowDown':  // 아래쪽 화살표 키
+                        moveDown();
+                        break;
+                    case 'ArrowUp':    // 위쪽 화살표 키
+                        rotatePiece();
+                        break;
+                    case ' ':          // 스페이스바
+                        hardDrop();
+                        break;
+                }
+            }
+        });
+        
+        // 재시작 버튼에 대한 이벤트 리스너 추가
+        restartButton.addEventListener('click', restartGame);
+        
+        // ===== 게임 시작 =====
+        // 게임 초기화 및 시작
+        
+        function startGame() {
+            // 첫 번째 조각 생성
+            currentPiece = getRandomPiece();
+            nextPiece = getRandomPiece();
+            
+            // 다음 조각 미리보기 업데이트
+            updatePreview();
+            
+            // 현재 조각 그리기
+            drawPiece(currentPiece);
+            
+            // 메인 게임 루프 설정
+            gameInterval = setInterval(() => {
+                moveDown();
+            }, speed);
+            
+            // 시간 추적 설정
+            timeInterval = setInterval(() => {
+                // 게임 시간 증가
+                gameTime++;
+                
+                // 시간 표시 업데이트
+                timeElement.textContent = formatTime(gameTime);
+                
+                // 1분마다 레벨 증가(60초)
+                if (gameTime % 60 === 0) {
+                    level++;
+                    levelElement.textContent = level;
+                    
+                    // 속도 증가(간격 시간 10% 감소)
+                    speed = Math.max(100, Math.floor(speed * 0.9));
+                    
+                    // 새 속도로 게임 간격 업데이트
+                    clearInterval(gameInterval);
+                    gameInterval = setInterval(() => {
+                        moveDown();
+                    }, speed);
+                }
+            }, 1000);
+        }
+        
+        // 게임 즉시 시작
+        startGame();
+    </script>
+</body>
+</html>
